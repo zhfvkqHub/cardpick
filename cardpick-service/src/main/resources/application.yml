@@ -1,0 +1,17 @@
+spring:
+  profiles:
+    active: local
+  application:
+    name: cardpick
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: public
+
+server:
+  port: 8090
