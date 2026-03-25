@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IntelliJ IDEA (루트 수준 .idea는 무시)
+.idea/
+
+# 환경변수 파일
+.env
+.env.local
+.env.*.local
+*.env
