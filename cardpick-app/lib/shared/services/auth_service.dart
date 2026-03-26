@@ -18,13 +18,13 @@ class AuthService {
     required String password,
   }) async {
     final response = await _dio.post('/api/v1/auth/signup', data: {
-      'name': name,
+      'nickname': name,
       'email': email,
       'password': password,
     });
     final json = response.data as Map<String, dynamic>;
     if (!(json['success'] as bool)) {
-      throw Exception(json['message'] ?? '회원가입에 실패했습니다');
+      throw Exception((json['error'] as Map?)?['message'] ?? '회원가입에 실패했습니다');
     }
     return UserResponse.fromJson(json['data'] as Map<String, dynamic>);
   }
@@ -39,7 +39,7 @@ class AuthService {
     });
     final json = response.data as Map<String, dynamic>;
     if (!(json['success'] as bool)) {
-      throw Exception(json['message'] ?? '로그인에 실패했습니다');
+      throw Exception((json['error'] as Map?)?['message'] ?? '로그인에 실패했습니다');
     }
     return TokenResponse.fromJson(json['data'] as Map<String, dynamic>);
   }

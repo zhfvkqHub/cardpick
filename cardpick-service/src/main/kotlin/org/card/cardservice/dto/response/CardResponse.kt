@@ -1,5 +1,6 @@
 package org.card.cardservice.dto.response
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.card.cardservice.domain.card.Card
 import java.time.LocalDateTime
 
@@ -12,7 +13,7 @@ data class CardResponse(
     val cardType: String,
     val imageUrl: String?,
     val description: String?,
-    val isActive: Boolean,
+    @get:JsonProperty("isActive") val isActive: Boolean,
     val benefitCount: Int,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,

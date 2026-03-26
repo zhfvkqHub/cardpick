@@ -16,7 +16,7 @@ class CardService {
     final response = await _dio.get('/api/v1/cards');
     final json = response.data as Map<String, dynamic>;
     if (!(json['success'] as bool)) {
-      throw Exception(json['message'] ?? '카드 목록 조회에 실패했습니다');
+      throw Exception((json['error'] as Map?)?['message'] ?? '카드 목록 조회에 실패했습니다');
     }
     return (json['data'] as List)
         .map((c) => CardResponse.fromJson(c as Map<String, dynamic>))
@@ -27,7 +27,7 @@ class CardService {
     final response = await _dio.get('/api/v1/cards/$id');
     final json = response.data as Map<String, dynamic>;
     if (!(json['success'] as bool)) {
-      throw Exception(json['message'] ?? '카드 상세 조회에 실패했습니다');
+      throw Exception((json['error'] as Map?)?['message'] ?? '카드 상세 조회에 실패했습니다');
     }
     return CardDetailResponse.fromJson(json['data'] as Map<String, dynamic>);
   }

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/recommendation_model.dart';
 import '../services/recommendation_service.dart';
@@ -18,9 +19,13 @@ class RecommendationNotifier
     try {
       final result = await _service.getLatest();
       state = AsyncValue.data(result);
-    } catch (_) {
-      // 이전 추천 결과 없음은 정상 케이스
-      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      // 추천 결과 없음(404)은 정상 케이스
+      if (e is DioError && e.response?.statusCode == 404) {
+        state = const AsyncValue.data(null);
+      } else {
+        state = AsyncValue.error(e, st);
+      }
     }
   }
 

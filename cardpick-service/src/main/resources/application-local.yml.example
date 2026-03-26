@@ -7,30 +7,30 @@
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:8091/cardpick   # DB 접속 URL
-    username: ${DB_USERNAME:cardpick}                 # ⚠️ 운영: DB_USERNAME 환경변수 설정
-    password: ${DB_PASSWORD:cardpick}                 # ⚠️ 운영: DB_PASSWORD 환경변수 설정
+    url: jdbc:postgresql://localhost:8091/cardpick
+    username: ${DB_USERNAME:cardpick}
+    password: ${DB_PASSWORD:cardpick}
     driver-class-name: org.postgresql.Driver
 
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}                    # ⚠️ 운영: REDIS_PASSWORD 환경변수 설정
+      password: ${REDIS_PASSWORD:}
 
 jwt:
-  secret: ${JWT_SECRET:여기에-로컬용-임시-시크릿-키-입력}  # ⚠️ 운영: JWT_SECRET 환경변수 설정 필수
-  expiration: ${JWT_EXPIRATION:86400000}               # 토큰 유효시간 (ms), 기본 24시간
+  secret: ${JWT_SECRET:여기에-로컬용-임시-시크릿-키-입력}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 app:
   cors:
     # 허용할 프론트엔드 도메인 (콤마로 구분)
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
-    # ⚠️ 운영 예시: CORS_ALLOWED_ORIGINS=https://admin.example.com,https://example.com
+    # 운영 예시: CORS_ALLOWED_ORIGINS=https://admin.example.com,https://example.com
   init:
     admin:
-      login-id: ${ADMIN_LOGIN_ID:admin}                # 초기 관리자 아이디
-      password: ${ADMIN_PASSWORD:변경하세요}            # ⚠️ 운영: ADMIN_PASSWORD 환경변수 설정 필수
+      login-id: ${ADMIN_LOGIN_ID:admin}
+      password: ${ADMIN_PASSWORD:admin}
       name: ${ADMIN_NAME:관리자}
 
 logging:

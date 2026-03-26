@@ -3,6 +3,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { ElMessage } from 'element-plus'
+import { User, Lock } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -52,12 +53,6 @@ async function handleLogin() {
   </div>
 </template>
 
-<script lang="ts">
-import { User, Lock } from '@element-plus/icons-vue'
-export default {
-  components: { User, Lock },
-}
-</script>
 
 <style scoped>
 .login-container {

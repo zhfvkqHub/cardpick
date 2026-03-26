@@ -16,7 +16,7 @@ class SpendingService {
     final response = await _dio.get('/api/v1/spending-profiles');
     final json = response.data as Map<String, dynamic>;
     if (!(json['success'] as bool)) {
-      throw Exception(json['message'] ?? '소비 프로필 조회에 실패했습니다');
+      throw Exception((json['error'] as Map?)?['message'] ?? '소비 프로필 조회에 실패했습니다');
     }
     return SpendingProfileResponse.fromJson(json['data'] as Map<String, dynamic>);
   }
@@ -27,7 +27,7 @@ class SpendingService {
     });
     final json = response.data as Map<String, dynamic>;
     if (!(json['success'] as bool)) {
-      throw Exception(json['message'] ?? '소비 프로필 저장에 실패했습니다');
+      throw Exception((json['error'] as Map?)?['message'] ?? '소비 프로필 저장에 실패했습니다');
     }
     return SpendingProfileResponse.fromJson(json['data'] as Map<String, dynamic>);
   }
@@ -36,7 +36,7 @@ class SpendingService {
     final response = await _dio.delete('/api/v1/spending-profiles');
     final json = response.data as Map<String, dynamic>;
     if (!(json['success'] as bool)) {
-      throw Exception(json['message'] ?? '소비 프로필 초기화에 실패했습니다');
+      throw Exception((json['error'] as Map?)?['message'] ?? '소비 프로필 초기화에 실패했습니다');
     }
   }
 }

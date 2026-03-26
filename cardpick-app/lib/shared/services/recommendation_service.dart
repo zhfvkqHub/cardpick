@@ -16,7 +16,7 @@ class RecommendationService {
     final response = await _dio.post('/api/v1/recommendations');
     final json = response.data as Map<String, dynamic>;
     if (!(json['success'] as bool)) {
-      throw Exception(json['message'] ?? '추천 요청에 실패했습니다');
+      throw Exception((json['error'] as Map?)?['message'] ?? '추천 요청에 실패했습니다');
     }
     return RecommendationResponse.fromJson(json['data'] as Map<String, dynamic>);
   }
@@ -25,7 +25,7 @@ class RecommendationService {
     final response = await _dio.get('/api/v1/recommendations/latest');
     final json = response.data as Map<String, dynamic>;
     if (!(json['success'] as bool)) {
-      throw Exception(json['message'] ?? '추천 결과 조회에 실패했습니다');
+      throw Exception((json['error'] as Map?)?['message'] ?? '추천 결과 조회에 실패했습니다');
     }
     return RecommendationResponse.fromJson(json['data'] as Map<String, dynamic>);
   }

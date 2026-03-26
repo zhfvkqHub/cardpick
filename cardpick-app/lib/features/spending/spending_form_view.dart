@@ -73,6 +73,12 @@ class _SpendingFormViewState extends ConsumerState<SpendingFormView> {
       }
     }
 
+    final categories = _entries.map((e) => e.category).toList();
+    if (categories.length != categories.toSet().length) {
+      showErrorSnackBar(context, '중복된 카테고리가 있습니다');
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       final items = _entries

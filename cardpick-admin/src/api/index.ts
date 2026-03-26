@@ -11,6 +11,11 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
+
+  if (config.url === '/admin/auth/login') {
+    return config
+  }
+
   const token = localStorage.getItem('token')
   if (!token || isTokenExpired(token)) {
     // 만료된 토큰으로 요청하지 않고 즉시 로그아웃

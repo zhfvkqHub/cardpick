@@ -8,7 +8,7 @@ class UserResponse {
   factory UserResponse.fromJson(Map<String, dynamic> json) => UserResponse(
         id: json['id'] as int,
         email: json['email'] as String,
-        name: json['name'] as String,
+        name: json['nickname'] as String,
       );
 }
 
