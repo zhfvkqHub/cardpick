@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { cardApi, type BenefitResponse, type BenefitCreateRequest } from '../api/card'
+import {
+  cardApi,
+  type BenefitResponse,
+  type BenefitCreateRequest,
+  type CategoryGroupDto,
+} from '../api/card'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
@@ -26,6 +31,7 @@ const form = reactive({
 const benefits = ref<BenefitResponse[]>([])
 
 const benefitForm = reactive<BenefitCreateRequest>({
+  categoryGroup: '',
   category: '',
   benefitType: '할인',
   benefitRate: 0,
@@ -39,10 +45,36 @@ const editingBenefitId = ref<number | null>(null)
 
 const cardCompanies = ['신한', '삼성', 'KB국민', '현대', '롯데', '우리', '하나', 'NH농협', 'BC', '씨티']
 const cardTypes = ['신용', '체크']
-const categories = ['식비', '교통', '통신', '쇼핑', '편의점', '카페', '주유', '문화', '여행', '의료', '교육', '기타']
 const benefitTypes = ['할인', '적립', '캐시백']
 
+// 카테고리 데이터 (API에서 로드)
+const categoryGroups = ref<CategoryGroupDto[]>([])
+
+// 선택된 대분류에 따른 소분류 목록
+const availableCategories = computed(() => {
+  const group = categoryGroups.value.find((g) => g.code === benefitForm.categoryGroup)
+  return group?.categories ?? []
+})
+
+// 대분류 변경 시 소분류 초기화
+watch(
+  () => benefitForm.categoryGroup,
+  () => {
+    benefitForm.category = ''
+  },
+)
+
 onMounted(async () => {
+  // 카테고리 목록 로드
+  try {
+    const catRes = await cardApi.getCategories()
+    if (catRes.data.success && catRes.data.data) {
+      categoryGroups.value = catRes.data.data.groups
+    }
+  } catch {
+    ElMessage.error('카테고리 목록을 불러오는데 실패했습니다')
+  }
+
   if (isEdit.value) {
     loading.value = true
     try {
@@ -98,6 +130,7 @@ async function handleSubmit() {
 function openBenefitDialog(benefit?: BenefitResponse) {
   if (benefit) {
     editingBenefitId.value = benefit.id
+    benefitForm.categoryGroup = benefit.categoryGroup
     benefitForm.category = benefit.category
     benefitForm.benefitType = benefit.benefitType
     benefitForm.benefitRate = benefit.benefitRate
@@ -106,6 +139,7 @@ function openBenefitDialog(benefit?: BenefitResponse) {
     benefitForm.description = benefit.description || ''
   } else {
     editingBenefitId.value = null
+    benefitForm.categoryGroup = ''
     benefitForm.category = ''
     benefitForm.benefitType = '할인'
     benefitForm.benefitRate = 0
@@ -117,7 +151,7 @@ function openBenefitDialog(benefit?: BenefitResponse) {
 }
 
 async function handleSaveBenefit() {
-  if (!benefitForm.category || !benefitForm.benefitType || !benefitForm.benefitRate) {
+  if (!benefitForm.categoryGroup || !benefitForm.benefitType || !benefitForm.benefitRate) {
     ElMessage.warning('필수 항목을 입력해주세요')
     return
   }
@@ -218,7 +252,11 @@ async function handleDeleteBenefit(benefit: BenefitResponse) {
         </div>
       </template>
       <el-table :data="benefits" stripe>
-        <el-table-column prop="category" label="카테고리" width="120" />
+        <el-table-column label="카테고리" width="180">
+          <template #default="{ row }">
+            {{ row.categoryDisplayName ? `${row.categoryGroupDisplayName} > ${row.categoryDisplayName}` : row.categoryGroupDisplayName }}
+          </template>
+        </el-table-column>
         <el-table-column prop="benefitType" label="혜택 유형" width="100" />
         <el-table-column prop="benefitRate" label="혜택율(%)" width="100" />
         <el-table-column prop="benefitLimit" label="한도(원)" width="120">
@@ -239,9 +277,30 @@ async function handleDeleteBenefit(benefit: BenefitResponse) {
     <!-- Benefit Dialog -->
     <el-dialog v-model="showBenefitDialog" :title="editingBenefitId ? '혜택 수정' : '혜택 추가'" width="500px">
       <el-form label-width="100px">
-        <el-form-item label="카테고리" required>
-          <el-select v-model="benefitForm.category" placeholder="카테고리 선택" style="width: 100%;">
-            <el-option v-for="c in categories" :key="c" :label="c" :value="c" />
+        <el-form-item label="대분류" required>
+          <el-select v-model="benefitForm.categoryGroup" placeholder="대분류 선택" style="width: 100%;">
+            <el-option
+              v-for="g in categoryGroups"
+              :key="g.code"
+              :label="g.displayName"
+              :value="g.code"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="소분류">
+          <el-select
+            v-model="benefitForm.category"
+            placeholder="전체 (대분류 전체 적용)"
+            style="width: 100%;"
+            :disabled="!benefitForm.categoryGroup"
+            clearable
+          >
+            <el-option
+              v-for="c in availableCategories"
+              :key="c.code"
+              :label="c.displayName"
+              :value="c.code"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="혜택 유형" required>

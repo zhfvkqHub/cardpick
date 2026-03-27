@@ -2,6 +2,8 @@ package org.card.cardservice.service
 
 import org.card.cardservice.domain.card.Card
 import org.card.cardservice.domain.card.CardBenefit
+import org.card.cardservice.domain.category.Category
+import org.card.cardservice.domain.category.CategoryGroup
 import org.card.cardservice.dto.request.BenefitCreateRequest
 import org.card.cardservice.dto.request.BenefitUpdateRequest
 import org.card.cardservice.dto.request.CardCreateRequest
@@ -88,12 +90,17 @@ class CardService(
         cardRepository.delete(card)
     }
 
-    /** @throws BusinessException [ErrorCode.CARD_NOT_FOUND] */
+    /**
+     * @throws BusinessException [ErrorCode.CARD_NOT_FOUND]
+     * @throws BusinessException [ErrorCode.INVALID_CATEGORY]
+     */
     @Transactional
     fun createBenefit(cardId: Long, request: BenefitCreateRequest): BenefitResponse {
         val card = findCardById(cardId)
+        validateCategory(request.categoryGroup, request.category)
         val benefit = CardBenefit(
             card = card,
+            categoryGroup = request.categoryGroup,
             category = request.category,
             benefitType = request.benefitType,
             benefitRate = request.benefitRate,
@@ -104,10 +111,15 @@ class CardService(
         return BenefitResponse.from(cardBenefitRepository.save(benefit))
     }
 
-    /** @throws BusinessException [ErrorCode.BENEFIT_NOT_FOUND] */
+    /**
+     * @throws BusinessException [ErrorCode.BENEFIT_NOT_FOUND]
+     * @throws BusinessException [ErrorCode.INVALID_CATEGORY]
+     */
     @Transactional
     fun updateBenefit(benefitId: Long, request: BenefitUpdateRequest): BenefitResponse {
         val benefit = findBenefitById(benefitId)
+        validateCategory(request.categoryGroup, request.category)
+        benefit.categoryGroup = request.categoryGroup
         benefit.category = request.category
         benefit.benefitType = request.benefitType
         benefit.benefitRate = request.benefitRate
@@ -132,5 +144,17 @@ class CardService(
     private fun findBenefitById(id: Long): CardBenefit {
         return cardBenefitRepository.findById(id)
             .orElseThrow { BusinessException(ErrorCode.BENEFIT_NOT_FOUND) }
+    }
+
+    private fun validateCategory(categoryGroupCode: String, categoryCode: String?) {
+        val group = CategoryGroup.fromCode(categoryGroupCode)
+            ?: throw BusinessException(ErrorCode.INVALID_CATEGORY)
+        if (!categoryCode.isNullOrBlank()) {
+            val category = Category.fromCode(categoryCode)
+                ?: throw BusinessException(ErrorCode.INVALID_CATEGORY)
+            if (category.group != group) {
+                throw BusinessException(ErrorCode.INVALID_CATEGORY)
+            }
+        }
     }
 }

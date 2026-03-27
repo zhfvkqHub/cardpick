@@ -24,15 +24,15 @@ class _SpendingViewState extends ConsumerState<SpendingView> {
   Future<void> _deleteProfiles() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('소비 프로필 초기화'),
         content: const Text('모든 소비 패턴이 삭제됩니다. 계속하시겠습니까?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text('취소')),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child:
                 const Text('삭제', style: TextStyle(color: Colors.red)),
           ),
@@ -163,7 +163,9 @@ class _SpendingList extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
                 leading: const Icon(Icons.category_outlined),
-                title: Text(items[i].category),
+                title: Text(items[i].categoryDisplayName != null
+                    ? '${items[i].categoryGroupDisplayName} > ${items[i].categoryDisplayName}'
+                    : items[i].categoryGroupDisplayName ?? items[i].categoryGroup),
                 trailing: Text(
                   '${_fmt(items[i].monthlyAmount)}원/월',
                   style: const TextStyle(fontWeight: FontWeight.w600),

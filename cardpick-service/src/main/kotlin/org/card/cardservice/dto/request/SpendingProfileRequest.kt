@@ -11,8 +11,10 @@ data class SpendingProfileRequest(
     val items: List<SpendingItem>,
 ) {
     data class SpendingItem(
-        @field:NotBlank(message = "카테고리는 필수입니다")
-        val category: String,
+        @field:NotBlank(message = "카테고리 그룹은 필수입니다")
+        val categoryGroup: String,
+
+        val category: String? = null,
 
         @field:Positive(message = "월 소비 금액은 0보다 커야 합니다")
         val monthlyAmount: Int,

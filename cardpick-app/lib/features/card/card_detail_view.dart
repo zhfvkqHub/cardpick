@@ -135,7 +135,10 @@ class _BenefitCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(benefit.category,
+                Text(
+                    benefit.categoryDisplayName != null
+                        ? '${benefit.categoryGroupDisplayName} > ${benefit.categoryDisplayName}'
+                        : benefit.categoryGroupDisplayName,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 Container(
                   padding: const EdgeInsets.symmetric(

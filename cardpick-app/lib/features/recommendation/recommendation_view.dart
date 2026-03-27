@@ -17,8 +17,20 @@ class _RecommendationViewState extends ConsumerState<RecommendationView> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-        () => ref.read(recommendationProvider.notifier).loadLatest());
+    Future.microtask(() => _loadOrRecommend());
+  }
+
+  Future<void> _loadOrRecommend() async {
+    await ref.read(recommendationProvider.notifier).loadLatest();
+    final result = ref.read(recommendationProvider).valueOrNull;
+    if (result == null && mounted) {
+      // 추천 결과가 없으면 자동으로 추천 실행
+      try {
+        await ref.read(recommendationProvider.notifier).recommend();
+      } catch (_) {
+        // 소비 프로필 미등록 등 실패 시 무시 (빈 화면 표시)
+      }
+    }
   }
 
   Future<void> _recommend() async {
@@ -235,7 +247,7 @@ class _RankBadge extends StatelessWidget {
     final colors = [Colors.amber, Colors.grey.shade400, Colors.brown.shade300];
     final color = rank <= 3
         ? colors[rank - 1]
-        : Theme.of(context).colorScheme.surfaceVariant;
+        : Theme.of(context).colorScheme.surfaceContainerHighest;
 
     return Container(
       width: 36,

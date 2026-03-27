@@ -58,8 +58,9 @@ class RecommendationService(
 
         val scores = cards.map { card ->
             val totalSaving = profiles.sumOf { profile ->
-                val matchingBenefits = card.benefits.filter {
-                    it.category.equals(profile.category, ignoreCase = true)
+                val matchingBenefits = card.benefits.filter { benefit ->
+                    benefit.categoryGroup == profile.categoryGroup &&
+                        (benefit.category == null || profile.category == null || benefit.category == profile.category)
                 }
                 matchingBenefits.sumOf { benefit ->
                     val saving = BigDecimal(profile.monthlyAmount)

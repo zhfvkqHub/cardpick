@@ -14,8 +14,11 @@ class CardBenefit(
     @JoinColumn(name = "card_id", nullable = false)
     var card: Card,
 
-    @Column(nullable = false)
-    var category: String,
+    @Column(name = "category_group", nullable = false)
+    var categoryGroup: String,
+
+    @Column
+    var category: String? = null,
 
     @Column(name = "benefit_type", nullable = false)
     var benefitType: String,

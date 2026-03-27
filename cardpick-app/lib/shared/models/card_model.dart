@@ -27,7 +27,10 @@ class CardResponse {
 
 class BenefitResponse {
   final int id;
-  final String category;
+  final String categoryGroup;
+  final String categoryGroupDisplayName;
+  final String? category;
+  final String? categoryDisplayName;
   final String benefitType;
   final double benefitRate;
   final int? benefitLimit;
@@ -36,7 +39,10 @@ class BenefitResponse {
 
   BenefitResponse({
     required this.id,
-    required this.category,
+    required this.categoryGroup,
+    required this.categoryGroupDisplayName,
+    this.category,
+    this.categoryDisplayName,
     required this.benefitType,
     required this.benefitRate,
     this.benefitLimit,
@@ -46,7 +52,10 @@ class BenefitResponse {
 
   factory BenefitResponse.fromJson(Map<String, dynamic> json) => BenefitResponse(
         id: json['id'] as int,
-        category: json['category'] as String,
+        categoryGroup: json['categoryGroup'] as String,
+        categoryGroupDisplayName: json['categoryGroupDisplayName'] as String,
+        category: json['category'] as String?,
+        categoryDisplayName: json['categoryDisplayName'] as String?,
         benefitType: json['benefitType'] as String,
         benefitRate: (json['benefitRate'] as num).toDouble(),
         benefitLimit: json['benefitLimit'] as int?,

@@ -23,11 +23,11 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // 토큰 로딩 중에는 스플래시(/)에 머무름
       if (authState.isLoading) {
-        return state.location == '/' ? null : '/';
+        return state.uri.path == '/' ? null : '/';
       }
 
       final isLoggedIn = authState.value != null;
-      final loc = state.location;
+      final loc = state.uri.path;
       final isOnAuthPage = loc == '/login' || loc == '/signup';
 
       if (!isLoggedIn && !isOnAuthPage) return '/login';
@@ -46,7 +46,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/signup', builder: (_, __) => const SignupView()),
       ShellRoute(
         builder: (ctx, state, child) =>
-            HomeShell(location: state.location, child: child),
+            HomeShell(location: state.uri.path, child: child),
         routes: [
           GoRoute(
             path: '/cards',
@@ -55,7 +55,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/cards/:id',
             builder: (_, state) {
-              final id = int.parse(state.params['id']!);
+              final id = int.parse(state.pathParameters['id']!);
               return CardDetailView(cardId: id);
             },
           ),

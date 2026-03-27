@@ -21,7 +21,7 @@ class RecommendationNotifier
       state = AsyncValue.data(result);
     } catch (e, st) {
       // 추천 결과 없음(404)은 정상 케이스
-      if (e is DioError && e.response?.statusCode == 404) {
+      if (e is DioException && e.response?.statusCode == 404) {
         state = const AsyncValue.data(null);
       } else {
         state = AsyncValue.error(e, st);

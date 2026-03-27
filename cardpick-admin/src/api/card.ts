@@ -1,6 +1,21 @@
 import api from './index'
 import type { ApiResponse } from './auth'
 
+export interface CategoryDto {
+  code: string
+  displayName: string
+}
+
+export interface CategoryGroupDto {
+  code: string
+  displayName: string
+  categories: CategoryDto[]
+}
+
+export interface CategoryResponse {
+  groups: CategoryGroupDto[]
+}
+
 export interface CardResponse {
   id: number
   cardCompany: string
@@ -18,7 +33,10 @@ export interface CardResponse {
 
 export interface BenefitResponse {
   id: number
-  category: string
+  categoryGroup: string
+  categoryGroupDisplayName: string
+  category: string | null
+  categoryDisplayName: string | null
   benefitType: string
   benefitRate: number
   benefitLimit: number | null
@@ -45,7 +63,8 @@ export interface CardUpdateRequest extends CardCreateRequest {
 }
 
 export interface BenefitCreateRequest {
-  category: string
+  categoryGroup: string
+  category?: string | null
   benefitType: string
   benefitRate: number
   benefitLimit?: number | null
@@ -88,5 +107,9 @@ export const cardApi = {
 
   deleteBenefit(benefitId: number) {
     return api.delete<ApiResponse<void>>(`/admin/cards/benefits/${benefitId}`)
+  },
+
+  getCategories() {
+    return api.get<ApiResponse<CategoryResponse>>('/v1/categories')
   },
 }

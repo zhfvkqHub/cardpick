@@ -147,7 +147,7 @@ CardDetailResponse {
 
 ```bash
 flutter pub get
-flutter run
+#flutter run
 ```
 
 - 크롬 브라우저에서 웹으로 실행하려면 다음 명령어를 사용합니다.

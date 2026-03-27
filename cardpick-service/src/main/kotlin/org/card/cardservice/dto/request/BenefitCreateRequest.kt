@@ -5,8 +5,10 @@ import jakarta.validation.constraints.Positive
 import java.math.BigDecimal
 
 data class BenefitCreateRequest(
-    @field:NotBlank(message = "카테고리는 필수입니다")
-    val category: String,
+    @field:NotBlank(message = "카테고리 그룹은 필수입니다")
+    val categoryGroup: String,
+
+    val category: String? = null,
 
     @field:NotBlank(message = "혜택 유형은 필수입니다")
     val benefitType: String,

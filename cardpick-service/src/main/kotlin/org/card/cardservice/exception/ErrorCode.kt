@@ -34,4 +34,5 @@ enum class ErrorCode(
     // Common
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "COMMON_001", "입력값이 올바르지 않습니다"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_002", "서버 내부 오류가 발생했습니다"),
+    INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "COMMON_003", "유효하지 않은 카테고리입니다"),
 }

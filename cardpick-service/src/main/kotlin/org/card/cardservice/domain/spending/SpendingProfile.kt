@@ -13,8 +13,11 @@ class SpendingProfile(
     @Column(name = "user_id", nullable = false)
     val userId: Long,
 
-    @Column(nullable = false)
-    var category: String,
+    @Column(name = "category_group", nullable = false)
+    var categoryGroup: String,
+
+    @Column
+    var category: String? = null,
 
     @Column(name = "monthly_amount", nullable = false)
     var monthlyAmount: Int,

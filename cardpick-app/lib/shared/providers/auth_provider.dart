@@ -26,14 +26,12 @@ class AuthNotifier extends StateNotifier<AsyncValue<String?>> {
   }
 
   Future<void> login(String email, String password) async {
-    state = const AsyncValue.loading();
     try {
       final tokenResponse =
           await _authService.login(email: email, password: password);
       await _tokenStorage.saveToken(tokenResponse.accessToken);
       state = AsyncValue.data(tokenResponse.accessToken);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    } catch (e) {
       rethrow;
     }
   }

@@ -36,11 +36,13 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/admin/auth/login").permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/cards/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/categories").permitAll()
                     .requestMatchers("/api/v1/spending-profiles/**").hasRole("USER")
                     .requestMatchers("/api/v1/recommendations/**").hasRole("USER")
                     .anyRequest().denyAll()
