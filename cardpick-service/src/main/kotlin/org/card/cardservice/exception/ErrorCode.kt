@@ -31,6 +31,11 @@ enum class ErrorCode(
     RECOMMENDATION_NOT_FOUND(HttpStatus.NOT_FOUND, "RECOMMEND_001", "추천 결과를 찾을 수 없습니다"),
     NO_ACTIVE_CARDS(HttpStatus.BAD_REQUEST, "RECOMMEND_002", "활성화된 카드가 없습니다"),
 
+    // Pending Card
+    PENDING_CARD_NOT_FOUND(HttpStatus.NOT_FOUND, "PENDING_001", "대기 카드를 찾을 수 없습니다"),
+    PENDING_CARD_ALREADY_PROCESSED(HttpStatus.CONFLICT, "PENDING_002", "이미 처리된 카드입니다"),
+    FSS_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PENDING_003", "금융감독원 API 호출에 실패했습니다"),
+
     // Common
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "COMMON_001", "입력값이 올바르지 않습니다"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_002", "서버 내부 오류가 발생했습니다"),

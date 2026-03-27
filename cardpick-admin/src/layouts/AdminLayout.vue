@@ -1,10 +1,26 @@
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import {onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useAuthStore} from '../stores/auth'
+import {pendingCardApi} from '../api/pendingCard'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const pendingCount = ref(0)
+
+async function fetchPendingCount() {
+  try {
+    const res = await pendingCardApi.getPendingCount()
+    if (res.data.success && res.data.data != null) {
+      pendingCount.value = res.data.data
+    }
+  } catch {
+    // ignore
+  }
+}
+
+onMounted(fetchPendingCount)
 
 function handleLogout() {
   authStore.logout()
@@ -28,6 +44,11 @@ function handleLogout() {
         <el-menu-item index="/">
           <el-icon><DataAnalysis /></el-icon>
           <span>대시보드</span>
+        </el-menu-item>
+        <el-menu-item index="/pending-cards">
+          <el-icon><Bell /></el-icon>
+          <span>신규 카드 후보</span>
+          <el-badge v-if="pendingCount > 0" :value="pendingCount" :max="99" style="margin-left: 8px;" />
         </el-menu-item>
         <el-menu-item index="/cards">
           <el-icon><CreditCard /></el-icon>

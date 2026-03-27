@@ -1,23 +1,31 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { cardApi, type CardResponse } from '../api/card'
+import {onMounted, ref} from 'vue'
+import {cardApi, type CardResponse} from '../api/card'
+import {pendingCardApi} from '../api/pendingCard'
 
 const totalCards = ref(0)
 const activeCards = ref(0)
+const pendingCount = ref(0)
 const recentCards = ref<CardResponse[]>([])
 const loading = ref(false)
 
 onMounted(async () => {
   loading.value = true
   try {
-    const res = await cardApi.getCards()
-    if (res.data.success && res.data.data) {
-      const cards = res.data.data
+    const [cardsRes, pendingRes] = await Promise.all([
+      cardApi.getCards(),
+      pendingCardApi.getPendingCount(),
+    ])
+    if (cardsRes.data.success && cardsRes.data.data) {
+      const cards = cardsRes.data.data
       totalCards.value = cards.length
       activeCards.value = cards.filter((c) => c.isActive).length
       recentCards.value = cards
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 5)
+    }
+    if (pendingRes.data.success && pendingRes.data.data != null) {
+      pendingCount.value = pendingRes.data.data
     }
   } catch {
     // handled by interceptor
@@ -32,7 +40,7 @@ onMounted(async () => {
     <h2 style="margin-top: 0;">대시보드</h2>
 
     <el-row :gutter="20" style="margin-bottom: 24px;">
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card shadow="hover">
           <el-statistic title="전체 카드 수" :value="totalCards">
             <template #prefix>
@@ -41,7 +49,7 @@ onMounted(async () => {
           </el-statistic>
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card shadow="hover">
           <el-statistic title="활성 카드 수" :value="activeCards">
             <template #prefix>
@@ -50,11 +58,20 @@ onMounted(async () => {
           </el-statistic>
         </el-card>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="6">
         <el-card shadow="hover">
           <el-statistic title="비활성 카드 수" :value="totalCards - activeCards">
             <template #prefix>
               <el-icon><CircleClose /></el-icon>
+            </template>
+          </el-statistic>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card shadow="hover">
+          <el-statistic title="대기 카드 수" :value="pendingCount">
+            <template #prefix>
+              <el-icon><Bell /></el-icon>
             </template>
           </el-statistic>
         </el-card>

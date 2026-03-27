@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { isTokenExpired } from '../stores/auth'
+import {createRouter, createWebHistory} from 'vue-router'
+import {isTokenExpired} from '../stores/auth'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -19,6 +19,11 @@ const router = createRouter({
           path: '',
           name: 'Dashboard',
           component: () => import('../views/DashboardView.vue'),
+        },
+        {
+          path: 'pending-cards',
+          name: 'PendingCards',
+          component: () => import('../views/PendingCardListView.vue'),
         },
         {
           path: 'cards',
