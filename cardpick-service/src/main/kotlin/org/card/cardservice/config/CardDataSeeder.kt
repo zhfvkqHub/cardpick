@@ -76,7 +76,7 @@ class CardDataSeeder(
         card.benefits.addAll(listOf(
             benefit(card, "FOOD", "FOOD_DINING", "DISCOUNT", "2.00", "외식 2% 할인"),
             benefit(card, "TRANSPORT", "TRANSPORT_PUBLIC", "DISCOUNT", "10.00", "대중교통 10% 할인"),
-            benefit(card, "CULTURE", "CULTURE_OTT", "CASHBACK", "5000", "OTT 구독 월 5,000원 캐시백", 5000),
+            benefit(card, "CULTURE", "CULTURE_OTT", "CASHBACK", "100.00", "OTT 구독 월 5,000원 캐시백", 5000),
         ))
         return card
     }
@@ -110,7 +110,7 @@ class CardDataSeeder(
         card.benefits.addAll(listOf(
             benefit(card, "CAFE", "CAFE_GENERAL", "DISCOUNT", "10.00", "카페 10% 할인"),
             benefit(card, "TRANSPORT", "TRANSPORT_PUBLIC", "DISCOUNT", "10.00", "대중교통 10% 할인"),
-            benefit(card, "TELECOM", "TELECOM", "DISCOUNT", "5000", "통신요금 월 5,000원 할인", 5000),
+            benefit(card, "TELECOM", "TELECOM", "DISCOUNT", "100.00", "통신요금 월 5,000원 할인", 5000),
         ))
         return card
     }
@@ -160,7 +160,7 @@ class CardDataSeeder(
         card.benefits.addAll(listOf(
             benefit(card, "SHOPPING", "SHOPPING_ONLINE", "CASHBACK", "5.00", "간편결제 5% 캐시백"),
             benefit(card, "TELECOM", "TELECOM", "DISCOUNT", "3.00", "통신요금 3% 할인"),
-            benefit(card, "INSURANCE", "INSURANCE", "CASHBACK", "5000", "보험료 월 5,000원 캐시백", 5000),
+            benefit(card, "INSURANCE", "INSURANCE", "CASHBACK", "100.00", "보험료 월 5,000원 캐시백", 5000),
         ))
         return card
     }
