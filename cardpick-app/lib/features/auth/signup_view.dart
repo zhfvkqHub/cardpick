@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../app/theme.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/widgets/common_widgets.dart';
 
@@ -53,18 +54,46 @@ class _SignupViewState extends ConsumerState<SignupView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('회원가입')),
+      backgroundColor: AppColors.surface,
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        title: const Text('회원가입'),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const SizedBox(height: 24),
+                const Text(
+                  '카드픽에 오신 것을\n환영합니다',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    height: 1.3,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '간단한 정보를 입력하고 시작하세요',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 36),
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: '이름'),
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: '이름',
+                    prefixIcon: Icon(Icons.person_outline_rounded, size: 20),
+                  ),
                   validator: (v) =>
                       (v == null || v.isEmpty) ? '이름을 입력하세요' : null,
                 ),
@@ -72,7 +101,11 @@ class _SignupViewState extends ConsumerState<SignupView> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: '이메일'),
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: '이메일',
+                    prefixIcon: Icon(Icons.mail_outline_rounded, size: 20),
+                  ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return '이메일을 입력하세요';
                     if (!v.contains('@')) return '올바른 이메일 형식을 입력하세요';
@@ -83,15 +116,26 @@ class _SignupViewState extends ConsumerState<SignupView> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     labelText: '비밀번호',
+                    prefixIcon:
+                        const Icon(Icons.lock_outline_rounded, size: 20),
                     helperText: '8자 이상 입력하세요',
+                    helperStyle: const TextStyle(
+                      color: AppColors.textHint,
+                      fontSize: 12,
+                    ),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword
-                          ? Icons.visibility
-                          : Icons.visibility_off),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        size: 20,
+                        color: AppColors.textHint,
+                      ),
+                      onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                   validator: (v) {
@@ -99,17 +143,23 @@ class _SignupViewState extends ConsumerState<SignupView> {
                     if (v.length < 8) return '비밀번호는 8자 이상이어야 합니다';
                     return null;
                   },
+                  onFieldSubmitted: (_) => _signup(),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 36),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _signup,
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('회원가입'),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white70,
+                          ),
+                        )
+                      : const Text('가입하기'),
                 ),
+                const SizedBox(height: 24),
               ],
             ),
           ),

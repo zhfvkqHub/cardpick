@@ -11,6 +11,7 @@ import '../features/spending/spending_form_view.dart';
 import '../features/recommendation/recommendation_view.dart';
 import '../shared/providers/auth_provider.dart';
 import 'home_shell.dart';
+import 'theme.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authListenable = _AuthListenable(ref);
@@ -21,7 +22,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authState = ref.read(authTokenProvider);
 
-      // 토큰 로딩 중에는 스플래시(/)에 머무름
       if (authState.isLoading) {
         return state.uri.path == '/' ? null : '/';
       }
@@ -35,12 +35,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      // 스플래시 (토큰 로딩 중)
       GoRoute(
         path: '/',
-        builder: (_, __) => const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
+        builder: (_, __) => const _SplashScreen(),
       ),
       GoRoute(path: '/login', builder: (_, __) => const LoginView()),
       GoRoute(path: '/signup', builder: (_, __) => const SignupView()),
@@ -55,7 +52,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/cards/:id',
             builder: (_, state) {
-              final id = int.parse(state.pathParameters['id']!);
+              final idStr = state.pathParameters['id'] ?? '';
+              final id = int.tryParse(idStr);
+              if (id == null) {
+                return const Scaffold(
+                  body: Center(child: Text('잘못된 카드 ID입니다')),
+                );
+              }
               return CardDetailView(cardId: id);
             },
           ),
@@ -76,6 +79,56 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.primary,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.credit_card_rounded,
+                size: 40,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'CardPick',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _AuthListenable extends ChangeNotifier {
   _AuthListenable(Ref ref) {

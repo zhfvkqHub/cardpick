@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 
 @Service
 class CardCollectorService(
@@ -34,7 +35,7 @@ class CardCollectorService(
             webClient.get()
                 .uri("/creditCardTop10.json?auth={key}&topFinGrpNo=060300&pageNo=1", fssApiKey)
                 .retrieve()
-                .bodyToMono(FssApiResponse::class.java)
+                .bodyToMono<FssApiResponse>()
                 .block()
         } catch (e: Exception) {
             log.error("금융감독원 API 호출 실패: {}", e.message)

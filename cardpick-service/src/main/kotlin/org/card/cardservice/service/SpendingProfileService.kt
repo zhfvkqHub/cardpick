@@ -27,6 +27,12 @@ class SpendingProfileService(
             validateCategory(item.categoryGroup, item.category)
         }
 
+        // 중복 카테고리 검증
+        val categoryKeys = request.items.map { "${it.categoryGroup}:${it.category ?: ""}" }
+        if (categoryKeys.size != categoryKeys.toSet().size) {
+            throw BusinessException(ErrorCode.INVALID_INPUT)
+        }
+
         spendingProfileRepository.deleteByUserId(userId)
 
         val profiles = request.items.map { item ->

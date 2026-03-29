@@ -34,6 +34,15 @@ class _AuthInterceptor extends Interceptor {
   }
 
   @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    // 401 응답 시 저장된 토큰 삭제 (다음 인증 체크에서 로그인으로 리다이렉트)
+    if (response.statusCode == 401) {
+      _tokenStorage.deleteToken();
+    }
+    handler.next(response);
+  }
+
+  @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     handler.next(err);
   }

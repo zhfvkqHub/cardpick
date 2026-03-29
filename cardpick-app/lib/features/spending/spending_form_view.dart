@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../app/theme.dart';
 import '../../shared/models/category_model.dart';
 import '../../shared/models/spending_model.dart';
 import '../../shared/providers/category_provider.dart';
 import '../../shared/providers/spending_provider.dart';
+import '../../shared/utils/format_utils.dart';
 import '../../shared/widgets/common_widgets.dart';
 
 class SpendingFormView extends ConsumerStatefulWidget {
@@ -79,7 +81,8 @@ class _SpendingFormViewState extends ConsumerState<SpendingFormView> {
       }
     }
 
-    final keys = _entries.map((e) => '${e.categoryGroup}:${e.category ?? ''}').toList();
+    final keys =
+        _entries.map((e) => '${e.categoryGroup}:${e.category ?? ''}').toList();
     if (keys.length != keys.toSet().length) {
       showErrorSnackBar(context, '중복된 카테고리가 있습니다');
       return;
@@ -90,7 +93,8 @@ class _SpendingFormViewState extends ConsumerState<SpendingFormView> {
       final items = _entries
           .map((e) => SpendingItem(
                 categoryGroup: e.categoryGroup,
-                category: e.category?.isNotEmpty == true ? e.category : null,
+                category:
+                    e.category?.isNotEmpty == true ? e.category : null,
                 monthlyAmount: int.parse(e.controller.text),
               ))
           .toList();
@@ -115,24 +119,36 @@ class _SpendingFormViewState extends ConsumerState<SpendingFormView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('소비 패턴 등록/수정'),
+        title: const Text('소비 패턴 등록'),
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _save,
-            child: const Text('저장'),
+            child: Text(
+              '저장',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: _isLoading ? AppColors.textHint : AppColors.primary,
+              ),
+            ),
           ),
         ],
       ),
       body: categoryAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('카테고리 로딩 실패: $e')),
+        loading: () => const LoadingOverlay(),
+        error: (e, _) => ErrorView(
+          message: '카테고리를 불러오지 못했습니다',
+          onRetry: () => ref.refresh(categoryProvider),
+        ),
         data: (categoryData) => Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
                 itemCount: _entries.length,
-                itemBuilder: (_, i) => _EntryRow(
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (_, i) => _EntryCard(
+                  key: ValueKey('entry_$i'),
+                  index: i + 1,
                   entry: _entries[i],
                   categoryGroups: categoryData.groups,
                   canRemove: _entries.length > 1,
@@ -143,18 +159,25 @@ class _SpendingFormViewState extends ConsumerState<SpendingFormView> {
                   }),
                   onCategoryChanged: (cat) =>
                       setState(() => _entries[i].category = cat),
-
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                border: Border(
+                  top: BorderSide(
+                    color: AppColors.border.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   OutlinedButton.icon(
                     onPressed: _addEntry,
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(Icons.add_rounded, size: 20),
                     label: const Text('카테고리 추가'),
                   ),
                   const SizedBox(height: 12),
@@ -164,9 +187,12 @@ class _SpendingFormViewState extends ConsumerState<SpendingFormView> {
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('저장'),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white70,
+                            ),
+                          )
+                        : const Text('저장하기'),
                   ),
                 ],
               ),
@@ -190,7 +216,8 @@ class _Entry {
   });
 }
 
-class _EntryRow extends StatelessWidget {
+class _EntryCard extends StatelessWidget {
+  final int index;
   final _Entry entry;
   final List<CategoryGroupDto> categoryGroups;
   final bool canRemove;
@@ -198,7 +225,9 @@ class _EntryRow extends StatelessWidget {
   final ValueChanged<String> onGroupChanged;
   final ValueChanged<String?> onCategoryChanged;
 
-  const _EntryRow({
+  const _EntryCard({
+    super.key,
+    required this.index,
     required this.entry,
     required this.categoryGroups,
     required this.canRemove,
@@ -209,9 +238,10 @@ class _EntryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final validGroup = categoryGroups.any((g) => g.code == entry.categoryGroup)
-        ? entry.categoryGroup
-        : null;
+    final validGroup =
+        categoryGroups.any((g) => g.code == entry.categoryGroup)
+            ? entry.categoryGroup
+            : null;
 
     final subcategories = validGroup != null
         ? categoryGroups
@@ -224,19 +254,72 @@ class _EntryRow extends StatelessWidget {
             ? entry.category
             : null;
 
+    final icon = validGroup != null
+        ? getCategoryIcon(validGroup)
+        : Icons.category_rounded;
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header row
+            Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 16, color: AppColors.primary),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  '카테고리 $index',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const Spacer(),
+                if (canRemove)
+                  GestureDetector(
+                    onTap: onRemove,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 16,
+                        color: AppColors.accent,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Category dropdowns
             Row(
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     initialValue: validGroup,
                     decoration: const InputDecoration(
-                        labelText: '대분류', isDense: true),
+                      labelText: '대분류',
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                    ),
+                    isExpanded: true,
                     items: categoryGroups
                         .map((g) => DropdownMenuItem(
                             value: g.code, child: Text(g.displayName)))
@@ -246,51 +329,48 @@ class _EntryRow extends StatelessWidget {
                     },
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Expanded(
                   child: DropdownButtonFormField<String?>(
+                    key: ValueKey('sub_${entry.categoryGroup}'),
                     initialValue: validCategory,
                     decoration: const InputDecoration(
-                        labelText: '소분류 (선택)', isDense: true),
+                      labelText: '소분류',
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                    ),
+                    isExpanded: true,
                     items: [
                       const DropdownMenuItem<String?>(
                           value: null, child: Text('전체')),
-                      ...subcategories.map((c) => DropdownMenuItem<String?>(
-                          value: c.code, child: Text(c.displayName))),
+                      ...subcategories.map((c) =>
+                          DropdownMenuItem<String?>(
+                              value: c.code,
+                              child: Text(c.displayName))),
                     ],
                     onChanged: (v) => onCategoryChanged(v),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: entry.controller,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
-                    decoration: const InputDecoration(
-                      labelText: '월 소비액',
-                      suffixText: '원',
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                if (canRemove) ...[
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle_outline,
-                        color: Colors.red),
-                    onPressed: onRemove,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
+            const SizedBox(height: 10),
+
+            // Amount input
+            TextField(
+              controller: entry.controller,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
               ],
+              decoration: const InputDecoration(
+                labelText: '월 소비액',
+                suffixText: '원',
+                isDense: true,
+                prefixIcon: Icon(Icons.payments_outlined, size: 20),
+                contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 12),
+              ),
             ),
           ],
         ),

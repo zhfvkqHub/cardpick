@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../app/theme.dart';
 import '../../shared/models/card_model.dart';
 import '../../shared/providers/card_provider.dart';
+import '../../shared/providers/auth_provider.dart';
+import '../../shared/utils/format_utils.dart';
 import '../../shared/widgets/common_widgets.dart';
 
 class CardListView extends ConsumerWidget {
@@ -13,7 +16,17 @@ class CardListView extends ConsumerWidget {
     final cardsAsync = ref.watch(cardListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('카드 목록')),
+      appBar: AppBar(
+        title: const Text('카드'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, size: 22),
+            tooltip: '로그아웃',
+            onPressed: () =>
+                ref.read(authTokenProvider.notifier).logout(),
+          ),
+        ],
+      ),
       body: cardsAsync.when(
         loading: () => const LoadingOverlay(),
         error: (_, __) => ErrorView(
@@ -23,12 +36,17 @@ class CardListView extends ConsumerWidget {
         data: (cards) => cards.isEmpty
             ? const EmptyStateView(
                 message: '등록된 카드가 없습니다',
-                icon: Icons.credit_card_off,
+                icon: Icons.credit_card_off_rounded,
               )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: cards.length,
-                itemBuilder: (_, i) => _CardListItem(card: cards[i]),
+            : RefreshIndicator(
+                onRefresh: () async => ref.refresh(cardListProvider),
+                color: AppColors.primary,
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                  itemCount: cards.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (_, i) => _CardListItem(card: cards[i]),
+                ),
               ),
       ),
     );
@@ -42,40 +60,97 @@ class _CardListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final companyColor = getCompanyColor(card.cardCompany);
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: Icon(
-            Icons.credit_card,
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
+      child: InkWell(
+        onTap: () => context.push('/cards/${card.id}'),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Company color badge
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: companyColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.credit_card_rounded,
+                    color: companyColor,
+                    size: 24,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              // Card info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      card.cardName,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      card.cardCompany,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Annual fee
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    card.annualFee == 0
+                        ? '무료'
+                        : '${formatCurrency(card.annualFee)}원',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: card.annualFee == 0
+                          ? AppColors.success
+                          : AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    '연회비',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textHint,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 4),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.textHint,
+                size: 20,
+              ),
+            ],
           ),
         ),
-        title: Text(
-          card.cardName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(card.cardCompany),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text('연회비', style: Theme.of(context).textTheme.labelSmall),
-            Text(
-              card.annualFee == 0 ? '무료' : '${_fmt(card.annualFee)}원',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-        onTap: () => context.push('/cards/${card.id}'),
       ),
     );
   }
-
-  String _fmt(int amount) => amount
-      .toString()
-      .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (m) => '${m[1]},');
 }
