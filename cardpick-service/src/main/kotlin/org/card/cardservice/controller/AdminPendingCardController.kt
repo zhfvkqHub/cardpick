@@ -41,9 +41,9 @@ class AdminPendingCardController(
         return ApiResponse.ok(pendingCardService.rejectPendingCard(id))
     }
 
-    @Operation(summary = "수동 수집", description = "금융감독원 API를 즉시 호출하여 카드를 수집합니다")
+    @Operation(summary = "수동 수집", description = "외부 API를 통한 카드 수집 (현재 비활성화)")
     @PostMapping("/collect")
-    fun collectCards(): ApiResponse<Int> {
+    fun collectCards(): ApiResponse<String> {
         return ApiResponse.ok(pendingCardService.collectNow())
     }
 }

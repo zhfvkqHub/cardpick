@@ -16,7 +16,6 @@ import java.time.LocalDateTime
 class PendingCardService(
     private val pendingCardRepository: PendingCardRepository,
     private val cardRepository: CardRepository,
-    private val cardCollectorService: CardCollectorService,
 ) {
     fun getPendingCards(): List<PendingCardResponse> {
         return pendingCardRepository.findByStatus(PendingStatus.PENDING)
@@ -71,8 +70,7 @@ class PendingCardService(
         return PendingCardResponse.from(pendingCard)
     }
 
-    @Transactional
-    fun collectNow(): Int {
-        return cardCollectorService.collectCards()
+    fun collectNow(): String {
+        return "현재 외부 API 연동이 비활성화되어 있습니다."
     }
 }
