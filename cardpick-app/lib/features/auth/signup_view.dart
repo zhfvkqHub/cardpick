@@ -17,14 +17,42 @@ class _SignupViewState extends ConsumerState<SignupView> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
   bool _isLoading = false;
   bool _obscurePassword = true;
+
+  static final _emailRegex =
+      RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
+
+  static bool _isValidPassword(String pw) {
+    if (pw.length < 8) return false;
+    if (!pw.contains(RegExp(r'[A-Za-z]'))) return false;
+    if (!pw.contains(RegExp(r'[0-9]'))) return false;
+    if (!pw.contains(RegExp(r'[!@#$%^&*()\-_=+\[\]{};:,.<>?/\\|~`]'))) return false;
+    return true;
+  }
+
+  bool get _isFormValid =>
+      _nameController.text.trim().isNotEmpty &&
+      _emailRegex.hasMatch(_emailController.text.trim()) &&
+      _isValidPassword(_passwordController.text);
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.addListener(() => setState(() {}));
+    _emailController.addListener(() => setState(() {}));
+    _passwordController.addListener(() => setState(() {}));
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -96,10 +124,13 @@ class _SignupViewState extends ConsumerState<SignupView> {
                   ),
                   validator: (v) =>
                       (v == null || v.isEmpty) ? '이름을 입력하세요' : null,
+                  onFieldSubmitted: (_) =>
+                      FocusScope.of(context).requestFocus(_emailFocusNode),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController,
+                  focusNode: _emailFocusNode,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
@@ -108,20 +139,23 @@ class _SignupViewState extends ConsumerState<SignupView> {
                   ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return '이메일을 입력하세요';
-                    if (!v.contains('@')) return '올바른 이메일 형식을 입력하세요';
+                    if (!_emailRegex.hasMatch(v.trim())) return '올바른 이메일 형식을 입력하세요';
                     return null;
                   },
+                  onFieldSubmitted: (_) =>
+                      FocusScope.of(context).requestFocus(_passwordFocusNode),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
+                  focusNode: _passwordFocusNode,
                   obscureText: _obscurePassword,
                   textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     labelText: '비밀번호',
                     prefixIcon:
                         const Icon(Icons.lock_outline_rounded, size: 20),
-                    helperText: '8자 이상 입력하세요',
+                    helperText: '영문·숫자·특수문자 포함 8자 이상',
                     helperStyle: const TextStyle(
                       color: AppColors.textHint,
                       fontSize: 12,
@@ -140,14 +174,14 @@ class _SignupViewState extends ConsumerState<SignupView> {
                   ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return '비밀번호를 입력하세요';
-                    if (v.length < 8) return '비밀번호는 8자 이상이어야 합니다';
+                    if (!_isValidPassword(v)) return '영문·숫자·특수문자 포함 8자 이상이어야 합니다';
                     return null;
                   },
                   onFieldSubmitted: (_) => _signup(),
                 ),
                 const SizedBox(height: 36),
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _signup,
+                  onPressed: _isFormValid && !_isLoading ? _signup : null,
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,

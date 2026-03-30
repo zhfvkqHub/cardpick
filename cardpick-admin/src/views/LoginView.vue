@@ -36,7 +36,7 @@ async function handleLogin() {
   <div class="login-container">
     <el-card class="login-card" shadow="always">
       <template #header>
-        <h2 style="margin: 0; text-align: center;">CardPick 관리자 로그인</h2>
+        <h2 style="margin: 0; text-align: center;">카드픽 관리자 로그인</h2>
       </template>
       <el-form @submit.prevent="handleLogin">
         <el-form-item label="아이디">

@@ -19,6 +19,28 @@ class _LoginViewState extends ConsumerState<LoginView> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
+  static final _emailRegex =
+      RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
+
+  static bool _isValidPassword(String pw) {
+    if (pw.length < 8) return false;
+    if (!pw.contains(RegExp(r'[A-Za-z]'))) return false;
+    if (!pw.contains(RegExp(r'[0-9]'))) return false;
+    if (!pw.contains(RegExp(r'[!@#$%^&*()\-_=+\[\]{};:,.<>?/\\|~`]'))) return false;
+    return true;
+  }
+
+  bool get _isFormValid =>
+      _emailRegex.hasMatch(_emailController.text.trim()) &&
+      _isValidPassword(_passwordController.text);
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(() => setState(() {}));
+    _passwordController.addListener(() => setState(() {}));
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -76,7 +98,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'CardPick',
+                    '카드픽',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
@@ -104,8 +126,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
                       labelText: '이메일',
                       prefixIcon: Icon(Icons.mail_outline_rounded, size: 20),
                     ),
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? '이메일을 입력하세요' : null,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return '이메일을 입력하세요';
+                      if (!_emailRegex.hasMatch(v.trim())) return '올바른 이메일 형식을 입력하세요';
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
                   // Password
@@ -129,14 +154,17 @@ class _LoginViewState extends ConsumerState<LoginView> {
                             () => _obscurePassword = !_obscurePassword),
                       ),
                     ),
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? '비밀번호를 입력하세요' : null,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return '비밀번호를 입력하세요';
+                      if (!_isValidPassword(v)) return '영문·숫자·특수문자 포함 8자 이상';
+                      return null;
+                    },
                     onFieldSubmitted: (_) => _login(),
                   ),
                   const SizedBox(height: 32),
                   // Login button
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
+                    onPressed: _isFormValid && !_isLoading ? _login : null,
                     child: _isLoading
                         ? const SizedBox(
                             height: 20,

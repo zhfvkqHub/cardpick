@@ -31,7 +31,7 @@ class _SpendingFormViewState extends ConsumerState<SpendingFormView> {
             categoryGroup: item.categoryGroup,
             category: item.category,
             controller:
-                TextEditingController(text: item.monthlyAmount.toString()),
+                TextEditingController(text: formatCurrency(item.monthlyAmount)),
           )));
     } else {
       _entries.add(_Entry(
@@ -74,7 +74,7 @@ class _SpendingFormViewState extends ConsumerState<SpendingFormView> {
         showErrorSnackBar(context, '금액을 입력하세요');
         return;
       }
-      final amount = int.tryParse(e.controller.text);
+      final amount = int.tryParse(e.controller.text.replaceAll(',', ''));
       if (amount == null || amount <= 0) {
         showErrorSnackBar(context, '금액은 0보다 커야 합니다');
         return;
@@ -95,7 +95,7 @@ class _SpendingFormViewState extends ConsumerState<SpendingFormView> {
                 categoryGroup: e.categoryGroup,
                 category:
                     e.category?.isNotEmpty == true ? e.category : null,
-                monthlyAmount: int.parse(e.controller.text),
+                monthlyAmount: int.parse(e.controller.text.replaceAll(',', '')),
               ))
           .toList();
       await ref.read(spendingProfileProvider.notifier).save(items);
@@ -362,6 +362,7 @@ class _EntryCard extends StatelessWidget {
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
+                ThousandsSeparatorInputFormatter(),
               ],
               decoration: const InputDecoration(
                 labelText: '월 소비액',

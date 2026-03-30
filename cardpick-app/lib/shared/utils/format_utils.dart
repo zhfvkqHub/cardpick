@@ -1,4 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digitsOnly = newValue.text.replaceAll(',', '');
+    if (digitsOnly.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+    final buffer = StringBuffer();
+    for (var i = 0; i < digitsOnly.length; i++) {
+      if (i > 0 && (digitsOnly.length - i) % 3 == 0) buffer.write(',');
+      buffer.write(digitsOnly[i]);
+    }
+    final formatted = buffer.toString();
+    return newValue.copyWith(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
 
 String formatCurrency(num amount) {
   final str = amount.toInt().abs().toString();

@@ -32,7 +32,7 @@ function handleLogout() {
   <el-container style="height: 100vh">
     <el-aside width="220px" style="background-color: #304156">
       <div style="padding: 20px; text-align: center; color: #fff; font-size: 18px; font-weight: bold;">
-        CardPick Admin
+        카드픽 Admin
       </div>
       <el-menu
         :default-active="route.path"

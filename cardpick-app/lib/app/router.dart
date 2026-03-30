@@ -106,7 +106,7 @@ class _SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             const Text(
-              'CardPick',
+              '카드픽',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,
