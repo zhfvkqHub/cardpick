@@ -8,11 +8,31 @@ import '../../shared/providers/auth_provider.dart';
 import '../../shared/utils/format_utils.dart';
 import '../../shared/widgets/common_widgets.dart';
 
-class CardListView extends ConsumerWidget {
+class CardListView extends ConsumerStatefulWidget {
   const CardListView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CardListView> createState() => _CardListViewState();
+}
+
+class _CardListViewState extends ConsumerState<CardListView>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final cardsAsync = ref.watch(cardListProvider);
 
     return Scaffold(
@@ -26,6 +46,25 @@ class CardListView extends ConsumerWidget {
                 ref.read(authTokenProvider.notifier).logout(),
           ),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: '전체'),
+            Tab(text: '신용'),
+            Tab(text: '체크'),
+          ],
+          indicatorColor: AppColors.primary,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textSecondary,
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w400,
+            fontSize: 14,
+          ),
+        ),
       ),
       body: cardsAsync.when(
         loading: () => const LoadingOverlay(),
@@ -33,21 +72,42 @@ class CardListView extends ConsumerWidget {
           message: '카드 목록을 불러오지 못했습니다',
           onRetry: () => ref.refresh(cardListProvider),
         ),
-        data: (cards) => cards.isEmpty
-            ? const EmptyStateView(
-                message: '등록된 카드가 없습니다',
-                icon: Icons.credit_card_off_rounded,
-              )
-            : RefreshIndicator(
-                onRefresh: () async => ref.refresh(cardListProvider),
-                color: AppColors.primary,
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                  itemCount: cards.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) => _CardListItem(card: cards[i]),
-                ),
-              ),
+        data: (cards) => TabBarView(
+          controller: _tabController,
+          children: [
+            _CardList(cards: cards),
+            _CardList(cards: cards.where((c) => c.cardType == '신용').toList()),
+            _CardList(cards: cards.where((c) => c.cardType == '체크').toList()),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CardList extends StatelessWidget {
+  final List<CardResponse> cards;
+
+  const _CardList({required this.cards});
+
+  @override
+  Widget build(BuildContext context) {
+    if (cards.isEmpty) {
+      return const EmptyStateView(
+        message: '해당하는 카드가 없습니다',
+        icon: Icons.credit_card_off_rounded,
+      );
+    }
+    return Consumer(
+      builder: (context, ref, _) => RefreshIndicator(
+        onRefresh: () async => ref.refresh(cardListProvider),
+        color: AppColors.primary,
+        child: ListView.separated(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          itemCount: cards.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (_, i) => _CardListItem(card: cards[i]),
+        ),
       ),
     );
   }
@@ -104,12 +164,39 @@ class _CardListItem extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      card.cardCompany,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          card.cardCompany,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        if (card.cardType.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: card.cardType == '신용'
+                                  ? AppColors.primary.withValues(alpha: 0.1)
+                                  : AppColors.success.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              card.cardType,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: card.cardType == '신용'
+                                    ? AppColors.primary
+                                    : AppColors.success,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),

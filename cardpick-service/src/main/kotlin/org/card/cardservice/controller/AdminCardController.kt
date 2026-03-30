@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size
 import org.card.cardservice.dto.request.BenefitCreateRequest
 import org.card.cardservice.dto.request.BenefitUpdateRequest
 import org.card.cardservice.dto.request.CardCreateRequest
+import org.card.cardservice.dto.request.CardImportRequest
 import org.card.cardservice.dto.request.CardUpdateRequest
 import org.card.cardservice.dto.response.*
 import org.card.cardservice.service.CardService
@@ -56,6 +57,18 @@ class AdminCardController(
     fun deleteCard(@PathVariable id: Long): ApiResponse<Unit> {
         cardService.deleteCard(id)
         return ApiResponse.ok()
+    }
+
+    @Operation(summary = "카드 복제", description = "카드와 혜택을 복사해 새 카드를 생성합니다. 카드명에 '(복사)'가 붙습니다")
+    @PostMapping("/{id}/clone")
+    fun cloneCard(@PathVariable id: Long): ApiResponse<CardResponse> {
+        return ApiResponse.ok(cardService.cloneCard(id))
+    }
+
+    @Operation(summary = "카드 JSON 일괄 임포트", description = "JSON 배열로 카드와 혜택을 일괄 등록합니다. 실패한 항목은 결과에 포함됩니다")
+    @PostMapping("/import")
+    fun importCards(@Valid @RequestBody request: CardImportRequest): ApiResponse<CardImportResult> {
+        return ApiResponse.ok(cardService.importCards(request))
     }
 
     @Operation(summary = "혜택 추가", description = "카드에 혜택을 추가합니다")

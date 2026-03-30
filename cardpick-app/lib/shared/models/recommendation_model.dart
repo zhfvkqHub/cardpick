@@ -3,6 +3,7 @@ class RecommendedCard {
   final int cardId;
   final String cardName;
   final String cardCompany;
+  final String cardType;
   final int annualFee;
   final double totalSaving;
   final double netSaving;
@@ -12,6 +13,7 @@ class RecommendedCard {
     required this.cardId,
     required this.cardName,
     required this.cardCompany,
+    required this.cardType,
     required this.annualFee,
     required this.totalSaving,
     required this.netSaving,
@@ -22,6 +24,7 @@ class RecommendedCard {
         cardId: json['cardId'] as int,
         cardName: json['cardName'] as String,
         cardCompany: json['cardCompany'] as String,
+        cardType: json['cardType'] as String? ?? '',
         annualFee: json['annualFee'] as int,
         totalSaving: (json['totalSaving'] as num).toDouble(),
         netSaving: (json['netSaving'] as num).toDouble(),

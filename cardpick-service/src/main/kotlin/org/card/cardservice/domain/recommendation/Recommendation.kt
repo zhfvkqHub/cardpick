@@ -23,6 +23,9 @@ class Recommendation(
     @Column(name = "card_company", nullable = false)
     val cardCompany: String,
 
+    @Column(name = "card_type", nullable = false)
+    val cardType: String,
+
     @Column(name = "annual_fee", nullable = false)
     val annualFee: Int,
 

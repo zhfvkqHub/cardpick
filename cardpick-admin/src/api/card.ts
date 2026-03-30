@@ -74,6 +74,38 @@ export interface BenefitCreateRequest {
 
 export interface BenefitUpdateRequest extends BenefitCreateRequest {}
 
+export interface CardImportBenefitItem {
+  categoryGroup: string
+  category?: string | null
+  benefitType: string
+  benefitRate: number
+  benefitLimit?: number | null
+  minimumAmount?: number | null
+  description?: string | null
+}
+
+export interface CardImportItem {
+  cardCompany: string
+  cardName: string
+  annualFee: number
+  minimumSpending?: number | null
+  cardType: string
+  imageUrl?: string | null
+  description?: string | null
+  benefits: CardImportBenefitItem[]
+}
+
+export interface CardImportFailure {
+  cardName: string
+  reason: string
+}
+
+export interface CardImportResult {
+  successCount: number
+  failedCount: number
+  failed: CardImportFailure[]
+}
+
 export const cardApi = {
   getCards(keyword?: string) {
     return api.get<ApiResponse<CardResponse[]>>('/admin/cards', {
@@ -107,6 +139,14 @@ export const cardApi = {
 
   deleteBenefit(benefitId: number) {
     return api.delete<ApiResponse<void>>(`/admin/cards/benefits/${benefitId}`)
+  },
+
+  cloneCard(id: number) {
+    return api.post<ApiResponse<CardResponse>>(`/admin/cards/${id}/clone`)
+  },
+
+  importCards(cards: CardImportItem[]) {
+    return api.post<ApiResponse<CardImportResult>>('/admin/cards/import', { cards })
   },
 
   getCategories() {

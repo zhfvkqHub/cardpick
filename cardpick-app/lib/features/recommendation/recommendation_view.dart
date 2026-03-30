@@ -126,7 +126,7 @@ class _EmptyRecommendation extends StatelessWidget {
   }
 }
 
-class _RecommendationResult extends StatelessWidget {
+class _RecommendationResult extends StatefulWidget {
   final RecommendationResponse recommendation;
   final VoidCallback onReRequest;
 
@@ -136,8 +136,32 @@ class _RecommendationResult extends StatelessWidget {
   });
 
   @override
+  State<_RecommendationResult> createState() => _RecommendationResultState();
+}
+
+class _RecommendationResultState extends State<_RecommendationResult>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final dt = recommendation.createdAt;
+    final dt = widget.recommendation.createdAt;
+    final all = widget.recommendation.cards;
+    final credit = all.where((c) => c.cardType == '신용').toList();
+    final debit = all.where((c) => c.cardType == '체크').toList();
+
     return Column(
       children: [
         // Header
@@ -164,7 +188,7 @@ class _RecommendationResult extends StatelessWidget {
                 ),
               const Spacer(),
               TextButton.icon(
-                onPressed: onReRequest,
+                onPressed: widget.onReRequest,
                 icon: const Icon(Icons.refresh_rounded, size: 16),
                 label: const Text('재추천'),
                 style: TextButton.styleFrom(
@@ -175,20 +199,66 @@ class _RecommendationResult extends StatelessWidget {
           ),
         ),
 
+        // Tabs
+        TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: '전체'),
+            Tab(text: '신용'),
+            Tab(text: '체크'),
+          ],
+          indicatorColor: AppColors.primary,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textSecondary,
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w400,
+            fontSize: 14,
+          ),
+        ),
+
         // Card list
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            itemCount: recommendation.cards.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (_, i) => _RecommendedCardItem(
-              card: recommendation.cards[i],
-              onTap: () => context
-                  .push('/cards/${recommendation.cards[i].cardId}'),
-            ),
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _RecommendedCardList(cards: all),
+              _RecommendedCardList(cards: credit),
+              _RecommendedCardList(cards: debit),
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _RecommendedCardList extends StatelessWidget {
+  final List<RecommendedCard> cards;
+
+  const _RecommendedCardList({required this.cards});
+
+  @override
+  Widget build(BuildContext context) {
+    if (cards.isEmpty) {
+      return const Center(
+        child: Text(
+          '해당하는 추천 카드가 없습니다',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
+        ),
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+      itemCount: cards.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (_, i) => _RecommendedCardItem(
+        card: cards[i],
+        onTap: () => context.push('/cards/${cards[i].cardId}'),
+      ),
     );
   }
 }
@@ -239,12 +309,39 @@ class _RecommendedCardItem extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 3),
-                        Text(
-                          card.cardCompany,
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 13,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              card.cardCompany,
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                            if (card.cardType.isNotEmpty) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: card.cardType == '신용'
+                                      ? AppColors.primary.withValues(alpha: 0.1)
+                                      : AppColors.success.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  card.cardType,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: card.cardType == '신용'
+                                        ? AppColors.primary
+                                        : AppColors.success,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),

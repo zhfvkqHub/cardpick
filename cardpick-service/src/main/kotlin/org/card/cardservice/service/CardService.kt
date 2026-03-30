@@ -7,9 +7,12 @@ import org.card.cardservice.domain.category.CategoryGroup
 import org.card.cardservice.dto.request.BenefitCreateRequest
 import org.card.cardservice.dto.request.BenefitUpdateRequest
 import org.card.cardservice.dto.request.CardCreateRequest
+import org.card.cardservice.dto.request.CardImportRequest
 import org.card.cardservice.dto.request.CardUpdateRequest
 import org.card.cardservice.dto.response.BenefitResponse
 import org.card.cardservice.dto.response.CardDetailResponse
+import org.card.cardservice.dto.response.CardImportFailure
+import org.card.cardservice.dto.response.CardImportResult
 import org.card.cardservice.dto.response.CardResponse
 import org.card.cardservice.exception.BusinessException
 import org.card.cardservice.exception.ErrorCode
@@ -127,6 +130,88 @@ class CardService(
         benefit.minimumAmount = request.minimumAmount
         benefit.description = request.description
         return BenefitResponse.from(cardBenefitRepository.save(benefit))
+    }
+
+    /** @throws BusinessException [ErrorCode.CARD_NOT_FOUND] */
+    @Transactional
+    fun cloneCard(id: Long): CardResponse {
+        val original = findCardById(id)
+        val cloned = Card(
+            cardCompany = original.cardCompany,
+            cardName = "${original.cardName} (복사)",
+            annualFee = original.annualFee,
+            minimumSpending = original.minimumSpending,
+            cardType = original.cardType,
+            imageUrl = original.imageUrl,
+            description = original.description,
+        )
+        val savedCard = cardRepository.save(cloned)
+        original.benefits.forEach { benefit ->
+            cardBenefitRepository.save(
+                CardBenefit(
+                    card = savedCard,
+                    categoryGroup = benefit.categoryGroup,
+                    category = benefit.category,
+                    benefitType = benefit.benefitType,
+                    benefitRate = benefit.benefitRate,
+                    benefitLimit = benefit.benefitLimit,
+                    minimumAmount = benefit.minimumAmount,
+                    description = benefit.description,
+                ),
+            )
+        }
+        return CardResponse.from(cardRepository.findById(savedCard.id).get())
+    }
+
+    @Transactional
+    fun importCards(request: CardImportRequest): CardImportResult {
+        val failed = mutableListOf<CardImportFailure>()
+        var successCount = 0
+
+        for (item in request.cards) {
+            try {
+                if (item.cardCompany.isBlank() || item.cardName.isBlank() || item.cardType.isBlank()) {
+                    failed.add(CardImportFailure(item.cardName.ifBlank { "(이름 없음)" }, "필수 항목이 누락됐습니다"))
+                    continue
+                }
+                if (cardRepository.findByCardNameAndCardCompany(item.cardName, item.cardCompany) != null) {
+                    failed.add(CardImportFailure(item.cardName, "이미 등록된 카드입니다"))
+                    continue
+                }
+                item.benefits.forEach { b -> validateCategory(b.categoryGroup, b.category) }
+
+                val card = Card(
+                    cardCompany = item.cardCompany,
+                    cardName = item.cardName,
+                    annualFee = item.annualFee,
+                    minimumSpending = item.minimumSpending,
+                    cardType = item.cardType,
+                    imageUrl = item.imageUrl,
+                    description = item.description,
+                )
+                val savedCard = cardRepository.save(card)
+                item.benefits.forEach { b ->
+                    cardBenefitRepository.save(
+                        CardBenefit(
+                            card = savedCard,
+                            categoryGroup = b.categoryGroup,
+                            category = b.category,
+                            benefitType = b.benefitType,
+                            benefitRate = b.benefitRate,
+                            benefitLimit = b.benefitLimit,
+                            minimumAmount = b.minimumAmount,
+                            description = b.description,
+                        ),
+                    )
+                }
+                successCount++
+            } catch (e: BusinessException) {
+                failed.add(CardImportFailure(item.cardName.ifBlank { "(이름 없음)" }, e.errorCode.message))
+            } catch (e: Exception) {
+                failed.add(CardImportFailure(item.cardName.ifBlank { "(이름 없음)" }, "처리 중 오류가 발생했습니다"))
+            }
+        }
+        return CardImportResult(successCount, failed.size, failed)
     }
 
     /** @throws BusinessException [ErrorCode.BENEFIT_NOT_FOUND] */

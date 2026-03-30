@@ -3,6 +3,7 @@ class CardResponse {
   final String cardCompany;
   final String cardName;
   final int annualFee;
+  final String cardType;
   final String? imageUrl;
   final bool isActive;
 
@@ -11,6 +12,7 @@ class CardResponse {
     required this.cardCompany,
     required this.cardName,
     required this.annualFee,
+    required this.cardType,
     this.imageUrl,
     required this.isActive,
   });
@@ -20,6 +22,7 @@ class CardResponse {
         cardCompany: json['cardCompany'] as String,
         cardName: json['cardName'] as String,
         annualFee: json['annualFee'] as int,
+        cardType: json['cardType'] as String? ?? '',
         imageUrl: json['imageUrl'] as String?,
         isActive: json['isActive'] as bool,
       );
