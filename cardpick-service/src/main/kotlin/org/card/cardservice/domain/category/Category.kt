@@ -15,6 +15,7 @@ enum class CategoryGroup(
     MEDICAL("의료"),
     INSURANCE("보험"),
     EDUCATION("교육"),
+    UTILITY("공과금"),
     ;
 
     companion object {
@@ -72,6 +73,12 @@ enum class Category(
 
     // 교육
     EDUCATION(CategoryGroup.EDUCATION, "교육"),
+
+    // 공과금
+    UTILITY_ELECTRICITY(CategoryGroup.UTILITY, "전기"),
+    UTILITY_GAS(CategoryGroup.UTILITY, "가스"),
+    UTILITY_WATER(CategoryGroup.UTILITY, "수도"),
+    UTILITY_APARTMENT(CategoryGroup.UTILITY, "관리비"),
     ;
 
     companion object {

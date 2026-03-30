@@ -62,6 +62,7 @@ IconData getCategoryIcon(String categoryGroup) {
     'GAS' => Icons.local_gas_station_rounded,
     'TELECOM' => Icons.phone_android_rounded,
     'INSURANCE' => Icons.shield_rounded,
+    'UTILITY' => Icons.receipt_long_rounded,
     _ => Icons.category_rounded,
   };
 }
